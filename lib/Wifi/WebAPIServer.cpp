@@ -1,24 +1,39 @@
 #include "WebAPIServer.h"
 
-//*** ESP32
-//#include <WiFi.h>
-
-#include <ESP8266WiFi.h>
-#include <ArduinoJson.h>
-
 #include "defs/RoombaDefs.h"
 #include "defs/RoombaUtils.h"
 #include "ByteUtils.h"
 
-ESP8266WebServer server(80);
+ESP8266WebServer server( HTTP_REST_PORT );
 
-//*** ESP32
-//WebServer server(80);
+void Connect()
+{
+    WiFi.mode( WIFI_STA );
+    WiFi.begin( WEB_SSID, WEB_PASS );
+    Serial.println( "" );
 
-// JSON data buffer
-static const int H_RESULT_COUNT = 500;
-const size_t capacity = JSON_ARRAY_SIZE(H_RESULT_COUNT) + JSON_OBJECT_SIZE(1) + H_RESULT_COUNT * JSON_OBJECT_SIZE(6);
-StaticJsonDocument<capacity> jsonDoc;
+    // Wait for connection
+    while ( WiFi.status() != WL_CONNECTED )
+    {
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.print( "IP address: " );
+    Serial.println( WiFi.localIP() );
+    
+    // Activate mDNS this is used to be able to connect to the server
+    // with local DNS hostmane esp8266.local
+    if ( MDNS.begin( "roombaBot" ) )
+    {
+        Serial.println( "MDNS responder started" );
+    }
+
+    SetupRouting();
+    
+    // Start server
+    server.begin();
+    Serial.println("HTTP server started");
+}
 
 /// Define paths for api calls and corresponding response methods
 void SetupRouting()
@@ -34,7 +49,6 @@ void SetupRouting()
         server.on( "/driveStop", apiDriveStop );
         server.on( "/brush", apiBrush );
         server.on( "/brushCounter", apiBrushCounter );
-        server.on( "/brushStop", apiBrushStop );
         server.on( "/toggleVacuum", apiToggleVacuum );
 
         server.on( "/powerDown", apiPowerDown );
@@ -49,126 +63,87 @@ void SetupRouting()
     }
 }
 
+void apiWakeUp()
+{
+    roombaManager->Wake();
+
+    server.send( HTTP_SUCCESS, "text/plain", "Wake Up" );
+}
+
 void apiDriveForward()
 {
-    // static DriveCommand drive = { 146, speed, speed };
-    // SendDriveCommand( &drive );
-
-    Serial.println( "Drive Forward" );
-
     roombaManager->Accelerate();
     server.send( HTTP_SUCCESS, "text/plain", "" );
 }
 
 void apiDriveBackward()
 {
-    // static DriveCommand drive = { 146, nspeed, nspeed };
-    // SendDriveCommand( &drive );
-
-    Serial.println( "Drive Backward" );
-
     roombaManager->Decelerate();
     server.send( HTTP_SUCCESS, "text/plain", "" );
 }
 
 void apiDriveLeft()
 {
-    // static DriveCommand drive = { 146, speed, 00 };
-    // SendDriveCommand( &drive );
+    roombaManager->TurnLeft();
     server.send( HTTP_SUCCESS, "text/plain", "" );
 }
 
 void apiDriveRight()
 {
-    // static DriveCommand drive = { 146, 00, speed };
-    // SendDriveCommand( &drive );
+    roombaManager->TurnRight();
     server.send( HTTP_SUCCESS, "text/plain", "" );
 }
 
 void apiDriveStop()
 {
-    static const uint8_t stopData[5] = { DRIVE_PWM_COMMAND, 0x00, 0x00, 0x00, 0x00 };
-    Serial2.write( stopData, 5 );
+    roombaManager->StopMotion();
     server.send( HTTP_SUCCESS, "text/plain", "Drive Stop" );
-}
-
-void apiWakeUp()
-{
-    server.send( HTTP_SUCCESS, "text/plain", "Wake Up" );
-    roombaManager->Wake();
-}
-
-void apiPowerDown()
-{
-    Serial2.write( POWER_DOWN_COMMAND );
-    server.send( HTTP_SUCCESS, "text/plain", "Power Down" );
-}
-
-void apiStartSerial()
-{
-    Serial2.write( START_SCI_COMMAND );
-    delay( 500 );
-
-    Serial2.write( FULL_MODE_COMMAND );
-
-    server.send( HTTP_SUCCESS, "text/plain", "Start Serial" );
-}
-
-void apiStopSerial()
-{
-    Serial2.write( STOP_SCI_COMMAND );
-    server.send( HTTP_SUCCESS, "text/plain", "Stop Serial" );
-}
-
-void apiSafeMode()
-{
-    Serial2.write( SAFE_MODE_COMMAND );
-    server.send( HTTP_SUCCESS, "text/plain", "Safe Mode" );
-}
-
-void apiFullMode()
-{
-    Serial2.write( FULL_MODE_COMMAND );
-    server.send( HTTP_SUCCESS, "text/plain", "Full Mode" );
 }
 
 void apiBrush()
 {
-    // static const uint8_t motorData[2] = { MOTORS_COMMAND, 1 };
-    // static const uint8_t stopData[2] =  { MOTORS_COMMAND, 0x00 };
-
-    // Serial2.write( motorData, 2 );
-    // delay( brushDelay );
-
-    // Serial2.write( stopData, 2 );
-
+    roombaManager->BrushClock();
     server.send( HTTP_SUCCESS, "text/plain", "Brush Clockwise" );
 }
 
 void apiBrushCounter()
 {
-    // static const uint8_t motorData[2] = { MOTORS_COMMAND, 9 };
-    // static const uint8_t stopData[2] =  { MOTORS_COMMAND, 0x00 };
-
-    // Serial2.write( motorData, 2 );
-    // delay( brushDelay );
-
-    // Serial2.write( stopData, 2 );
-
+    roombaManager->BrushCounterClock();
     server.send( HTTP_SUCCESS, "text/plain", "Brush Counter-Clockwise" );
-}
-
-void apiBrushStop()
-{
-    // static const uint8_t stopData[2] =  { MOTORS_COMMAND, 0x00 };
-    // Serial2.write( stopData, 2 );
-    server.send( HTTP_SUCCESS, "text/plain", "Brush Stop" );
 }
 
 void apiToggleVacuum()
 {
-    // static const uint8_t startData[2] =  { MOTORS_COMMAND, 0x06 };
-    // static const uint8_t stopData[2] =  { MOTORS_COMMAND, 0x00 };
-    // Serial2.write( stopData, 2 );
+    roombaManager->ToggleVacuum();
     server.send( HTTP_SUCCESS, "text/plain", "Start Vacuum" );
+}
+
+void apiPowerDown()
+{
+    roombaManager->PowerDown();
+    server.send( HTTP_SUCCESS, "text/plain", "Power Down" );
+}
+
+void apiStartSerial()
+{
+    roombaManager->StartSerial();
+    server.send( HTTP_SUCCESS, "text/plain", "Start Serial" );
+}
+
+void apiStopSerial()
+{
+    roombaManager->StopSerial();
+    server.send( HTTP_SUCCESS, "text/plain", "Stop Serial" );
+}
+
+void apiSafeMode()
+{
+    roombaManager->SafeMode();
+    server.send( HTTP_SUCCESS, "text/plain", "Safe Mode" );
+}
+
+void apiFullMode()
+{
+    roombaManager->FullMode();
+    server.send( HTTP_SUCCESS, "text/plain", "Full Mode" );
 }

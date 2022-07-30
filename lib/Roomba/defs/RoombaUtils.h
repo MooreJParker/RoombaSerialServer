@@ -3,6 +3,6 @@
 
 #include "RoombaDefs.h"
 
-void SendDriveCommand( DriveCommand * command );
+//void SendDriveCommand( DriveCommand * command );
 
 #endif // CAT_ROOMBA_UTILS_H

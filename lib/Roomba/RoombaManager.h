@@ -3,8 +3,6 @@
 
 #include <Arduino.h>
 
-#include <SoftwareSerial.h>
-
 #include "defs/RoombaDefs.h"
 #include "defs/RoombaUtils.h"
 
@@ -18,6 +16,20 @@ public:
 
     void Accelerate();
     void Decelerate();
+    void TurnRight();
+    void TurnLeft();
+    void StopMotion();
+
+    void BrushClock();
+    void BrushCounterClock();
+
+    void ToggleVacuum();
+
+    void PowerDown();
+    void StartSerial();
+    void StopSerial();
+    void SafeMode();
+    void FullMode();
     void Wake();
 
 private:
@@ -31,14 +43,16 @@ private:
 
     void sendDriveCommand( DriveCommand * command );
 
-    static const int16_t ACCEL_INC = 5;
+    static const int16_t ACCEL_INC = 20;
+    static const int16_t TURN_INC = ( ACCEL_INC * 1.5 );
 
     DriveCommand mDriveCommand;
-    SoftwareSerial mSerial;
+    DriveCommand mTurnCommand;
 
     uint8_t mWakePin;
     int16_t mRWSpeed;
     int16_t mLWSpeed;
+    bool mVacuumState;
 };
 
 #endif // ROOMBA_MANAGER_H

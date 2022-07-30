@@ -1,7 +1,5 @@
 #include <Arduino.h>
-#include <HardwareSerial.h>
 
-#include "OTA.h"
 #include "WebAPIServer.h"
 #include "defs/RoombaDefs.h"
 
@@ -15,21 +13,20 @@ void setup()
     Serial.begin( 115200 );
 
     //*** ESP32
-    //Serial2.begin( 19200, SERIAL_8N1, RXD2, TXD2 );
-    //Serial2.begin( 115200, SERIAL_8N1, RXD2, TXD2 );
+    ////Serial2.begin( 19200, SERIAL_8N1, RXD2, TXD2 );
+    ////Serial2.begin( 115200, SERIAL_8N1, RXD2, TXD2 );
 
     delay( 1000 );
 
-    OTASetup();
-    SetupRouting();
+    Connect();
 }
 
 void loop()
 {
     server.handleClient();
 
-    if ( Serial2.available() )
-    {
-        Serial.write( Serial2.read() );
-    }
+    // if ( //Serial2.available() )
+    // {
+    //     Serial.write( //Serial2.read() );
+    // }
 }

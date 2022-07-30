@@ -1,18 +1,18 @@
 #ifndef WebAPI_h
 #define WebAPI_h
 
-//*** ESP32
-//#include <WebServer.h>
-
 #include <ESP8266WiFi.h>
+#include <WiFiClient.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
 
 #include "RoombaManager.h"
 
-extern ESP8266WebServer server;
+#define HTTP_REST_PORT 80
+#define WEB_SSID "BruceBanner"
+#define WEB_PASS "1000Shots"
 
-//*** ESP32
-//extern WebServer server;
+extern ESP8266WebServer server;
 
 static const int HTTP_SUCCESS  = 200; // actuator task succeeded
 static const int HTTP_ACCEPTED = 202; // actuator task started
@@ -23,6 +23,7 @@ static const String FAIL_MSG = "fail - turbo is off";
 
 static RoombaManager * roombaManager;
 
+void Connect();
 void SetupRouting();
 
 // api endpoints
@@ -35,7 +36,6 @@ void apiDriveRight();
 void apiDriveStop();
 void apiBrush();
 void apiBrushCounter();
-void apiBrushStop();
 void apiToggleVacuum();
 
 void apiPowerDown();
