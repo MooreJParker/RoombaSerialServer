@@ -11,9 +11,15 @@ RoombaManager::RoombaManager()
     , mRWSpeed( 0 )
     , mLWSpeed( 0 )
     , mVacuumState( false )
+    , mScreen( new Screen() )
 {
     pinMode( mWakePin, OUTPUT );
     digitalWrite( mWakePin, HIGH );
+}
+
+void RoombaManager::SetScreen( Screen * screen )
+{
+    mScreen = screen;
 }
 
 void RoombaManager::Accelerate()
@@ -213,7 +219,12 @@ void RoombaManager::sendDriveCommand( DriveCommand * command )
         sendData[i + 1] = commandArr[i];
     }
 
-    PrintByteArray( sendData, 5 );
+    String outStr = String( command->id ) + ", ";
+    outStr += String( command->leftWheel ) + ", ";
+    outStr += String( command->rightWheel );
 
+    mScreen->Write( outStr );
+    Serial.println( outStr );
+    
     //Serial2.write( sendData, 5 );
 }

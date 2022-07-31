@@ -28,7 +28,7 @@ void Screen::updateScreen( String str )
     // uint8_t yGapDist = 20;
     // uint8_t xDataOffset = 55;
     uint8_t distPosX = 5;
-    uint8_t distPosY = 15;
+    uint8_t distPosY = 32;
 
     mScreen.setFont( u8g_font_profont10 );
     mScreen.setCursor( distPosX, distPosY );

@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #include "defs/RoombaDefs.h"
+#include "Screen.h"
 
 #define RXPIN 5
 #define TXPIN 6
@@ -12,6 +13,8 @@ class RoombaManager
 {
 public:
     RoombaManager();
+
+    void SetScreen( Screen * screen );
 
     void Accelerate();
     void Decelerate();
@@ -52,6 +55,7 @@ private:
     int16_t mRWSpeed;
     int16_t mLWSpeed;
     bool mVacuumState;
+    Screen * mScreen;
 };
 
 #endif // ROOMBA_MANAGER_H
