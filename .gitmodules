@@ -1,0 +1,3 @@
+[submodule "lib/Wifi/WemosWifi"]
+	path = lib/Wifi/WemosWifi
+	url = git@github.com:MooreJParker/WemosWifi.git
