@@ -4,7 +4,6 @@
 #include <Arduino.h>
 
 #include "defs/RoombaDefs.h"
-#include "defs/RoombaUtils.h"
 
 #define RXPIN 5
 #define TXPIN 6

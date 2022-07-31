@@ -1,11 +1,13 @@
 #include <Arduino.h>
 
-#include "WebAPIServer.h"
-#include "defs/RoombaDefs.h"
+#include "RoombaServer.h"
+
 
 //*** ESP32
 // #define RXD2 GPIO_NUM_16
 // #define TXD2 GPIO_NUM_17
+
+RoombaServer * roombaServer;
 
 void setup()
 {
@@ -16,14 +18,13 @@ void setup()
     ////Serial2.begin( 19200, SERIAL_8N1, RXD2, TXD2 );
     ////Serial2.begin( 115200, SERIAL_8N1, RXD2, TXD2 );
 
-    delay( 1000 );
-
-    Connect();
+    roombaServer = new RoombaServer();
+    roombaServer->Begin();
 }
 
 void loop()
 {
-    server.handleClient();
+    roombaServer->Run();
 
     // if ( //Serial2.available() )
     // {
